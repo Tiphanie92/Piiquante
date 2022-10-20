@@ -3,12 +3,14 @@ const passwordValidator = require("password-validator");
 // Create a schema
 const passwordSchema = new passwordValidator();
 
+const validator = require("email-validator");
+
 // Add properties to it
 passwordSchema
   .is()
   .min(8) // Minimum length 8
   .is()
-  .max(100) // Maximum length 100
+  .max(20) // Maximum length 20
   .has()
   .uppercase() // Must have uppercase letters
   .has()
@@ -24,7 +26,10 @@ passwordSchema
 
 //Vérification du Mot de passe celon le schéma
 module.exports = (req, res, next) => {
-  if (passwordSchema.validate(req.body.password)) {
+  if (
+    passwordSchema.validate(req.body.password) &&
+    validator.validate(req.body.email)
+  ) {
     next();
   } else {
     return res.status(400).json({
