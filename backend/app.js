@@ -1,24 +1,32 @@
 const express = require("express");
-const app = express();
-// importer { MongoClient } depuis 'mongodb'
+const helmet = require("helmet");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-const cors = require("cors");
-const userRoutes = require("./routes/User");
-const saucesRoutes = require("./models/sauces");
 const path = require("path");
-app.use(cors());
 
+//Importer package pour variables d'environnement
+require("dotenv").config();
+
+// Déclaration routes user et sauces
+const userRoutes = require("./routes/User");
+const saucesRoutes = require("./routes/sauces");
+
+//Lancement express
+const app = express();
+
+//Connexion à Mongodb
 mongoose
   .connect(
-    "mongodb+srv://Tiphanie:TqRGKOqNFkwygbba@cluster0.ahmnscv.mongodb.net/Piiquante?retryWrites=true&w=majority",
+    `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_CLUSTER}.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`,
     { useNewUrlParser: true, useUnifiedTopology: true }
   )
   .then(() => console.log("Connexion à MongoDB réussie !"))
   .catch(() => console.log("Connexion à MongoDB échouée !"));
 
+//Convertit en JSON
 app.use(express.json());
 
+//CORS
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -31,9 +39,16 @@ app.use((req, res, next) => {
   );
   next();
 });
-
 app.use(bodyParser.json());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
+//Multer (images)
 app.use("/images", express.static(path.join(__dirname, "images")));
+//Lancement routes
 app.use("/api/auth", userRoutes);
 app.use("/api/sauces", saucesRoutes);
+
 module.exports = app;
