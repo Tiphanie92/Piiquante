@@ -1,7 +1,6 @@
 const express = require("express");
 const helmet = require("helmet");
 const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
 const path = require("path");
 
 //Importer package pour variables d'environnement
@@ -39,7 +38,7 @@ app.use((req, res, next) => {
   );
   next();
 });
-app.use(bodyParser.json());
+
 app.use(
   helmet({
     crossOriginResourcePolicy: false,
