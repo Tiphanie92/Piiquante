@@ -53,14 +53,14 @@ exports.modifySauces = (req, res, next) => {
     .findOne({ _id: req.params.id })
     .then((sauce) => {
       if (sauce.userId != req.auth.userId) {
-        res.status(401).json({ message: "Not authorized" });
+        res.status(403).json({ message: "Unauthorized request" });
       } else {
         sauces
           .updateOne(
             { _id: req.params.id },
             { ...sauceObject, _id: req.params.id }
           )
-          .then(() => res.status(200).json({ message: "Objet modifié!" }))
+          .then(() => res.status(200).json({ message: "Sauce modifié!" }))
           .catch((error) => res.status(401).json({ error }));
       }
     })
@@ -74,14 +74,14 @@ exports.deleteSauces = (req, res, next) => {
     .findOne({ _id: req.params.id })
     .then((sauce) => {
       if (sauce.userId != req.auth.userId) {
-        res.status(401).json({ message: "Not authorized" });
+        res.status(403).json({ message: "Unauthorized request" });
       } else {
         const filename = sauce.imageUrl.split("/images/")[1];
         fs.unlink(`images/${filename}`, () => {
           sauces
             .deleteOne({ _id: req.params.id })
             .then(() => {
-              res.status(200).json({ message: "Objet supprimé !" });
+              res.status(200).json({ message: "Sauce supprimé !" });
             })
             .catch((error) => res.status(401).json({ error }));
         });
@@ -119,13 +119,74 @@ exports.likeSauces = (req, res, next) => {
                 $push: { usersLiked: req.body.userId },
               }
             )
-            .then(() => res.status(201).json({ message: "Like +1" }))
+            .then(() => res.status(201).json({ message: "Like ajoutée" }))
             .catch((error) => res.status(400).json({ error }));
         }
       })
       .catch((error) => res.status(400).json({ error }));
   }
-  // Si like = 0, l'utilisateur annule son like ou dislike
-
+  // Si like = 0, l'utilisateur annule son like
+  if (req.body.like == 0) {
+    sauces
+      .findOne({ _id: req.params.id })
+      .then((sauce) => {
+        if (sauce.usersLiked.includes(req.body.userId)) {
+          sauces
+            .updateOne(
+              { _id: req.params.id },
+              {
+                $inc: { likes: -1 },
+                $pull: {
+                  usersLiked: req.body.userId,
+                },
+              }
+            )
+            .then(() => res.status(201).json({ message: "Like annulé" }))
+            .catch((error) => res.status(400).json({ error }));
+        }
+      })
+      .catch((error) => res.status(400).json({ error }));
+  }
+  // annulation du dislike
+  if (req.body.like == 0) {
+    sauces
+      .findOne({ _id: req.params.id })
+      .then((sauce) => {
+        if (sauce.usersDisliked.includes(req.body.userId)) {
+          sauces
+            .updateOne(
+              { _id: req.params.id },
+              {
+                $inc: { dislikes: -1 },
+                $pull: {
+                  usersDisliked: req.body.userId,
+                },
+              }
+            )
+            .then(() => res.status(201).json({ message: "dislike annulé" }))
+            .catch((error) => res.status(400).json({ error }));
+        }
+      })
+      .catch((error) => res.status(400).json({ error }));
+  }
   // Si like = -1, l'utilisateur dislike
+  if (req.body.like == -1) {
+    sauces
+      .findOne({ _id: req.params.id })
+      .then((sauce) => {
+        if (!sauce.usersLiked.includes(req.body.userId)) {
+          sauces
+            .updateOne(
+              { _id: req.params.id },
+              {
+                $inc: { dislikes: 1 },
+                $push: { usersDisliked: req.body.userId },
+              }
+            )
+            .then(() => res.status(201).json({ message: "Dislike ajouté" }))
+            .catch((error) => res.status(400).json({ error }));
+        }
+      })
+      .catch((error) => res.status(400).json({ error }));
+  }
 };
