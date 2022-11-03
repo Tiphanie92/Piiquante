@@ -1,30 +1,30 @@
 const passwordValidator = require("password-validator");
 
-// Create a schema
+// Creation du schema pour le mot de passe
 const passwordSchema = new passwordValidator();
 
-const validator = require("email-validator");
-
-// Add properties to it
+// Propriété du schema
 passwordSchema
   .is()
-  .min(8) // Minimum length 8
+  .min(8) // Minimum 8 caractéres
   .is()
-  .max(20) // Maximum length 20
+  .max(20) // Maximum 20 caractéres
   .has()
-  .uppercase() // Must have uppercase letters
+  .uppercase(1) // 1 Majuscule
   .has()
-  .lowercase() // Must have lowercase letters
+  .lowercase()
   .has()
-  .digits(2) // Must have at least 2 digits
+  .digits(2) // 2 Chiffres
   .has()
   .not()
   .spaces() // Should not have spaces
   .is()
   .not()
-  .oneOf(["Passw0rd", "Password123"]); // Blacklist these values
+  .oneOf(["Passw0rd", "Password123"]); // Blacklist
 
-//Vérification du Mot de passe celon le schéma
+const validator = require("email-validator");
+
+//Vérification du Mot de passe et de l'email
 module.exports = (req, res, next) => {
   if (
     passwordSchema.validate(req.body.password) &&
@@ -36,7 +36,7 @@ module.exports = (req, res, next) => {
       error: `Le mot de passe n'est pas valide ${passwordSchema.validate(
         "req.body.password",
         { list: true }
-      )}`,
+      )} ou l'email ${req.body.email} n'est pas valide`,
     });
   }
 };

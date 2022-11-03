@@ -1,3 +1,4 @@
+//Importer le package Http pour créer le serveur
 const http = require("http");
 //Importer l'application app.js
 const app = require("./app");
@@ -13,11 +14,12 @@ const normalizePort = (val) => {
   }
   return false;
 };
-
+//Renvoie sur un port valide
 const port = normalizePort(process.env.PORT || "3000");
 //Paramétrage du port avec set de Express
 app.set("port", port);
 
+//Gestionnaire d'erreur
 const errorHandler = (error) => {
   if (error.syscall !== "listen") {
     throw error;
@@ -39,6 +41,7 @@ const errorHandler = (error) => {
   }
 };
 
+//Méthode createserver prend en argument les fonctions situé dans app.js
 const server = http.createServer(app);
 
 server.on("error", errorHandler);
